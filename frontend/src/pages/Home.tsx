@@ -1,52 +1,49 @@
-import UrlInput from '../components/UrlInput';
-import ResultsDisplay from '../components/ResultsDisplay';
-
+import { useState, useEffect } from "react";
+import UrlInput from "../components/UrlInput";
+import ResultsDisplay from "../components/ResultsDisplay";
+import { fetchCrawlResults, CrawlResult } from "../services/api";
+import toast from "react-hot-toast";
 
 // Dummy data for initial development
 function Home() {
-  interface CrawlResult {
-  url: string;
-  pageTitle: string;
-  num_external_links: number;
-  num_internal_links: number;
-  num_inaccessible_links: number;
-  has_login_form: boolean;
-}
-const sampleResults: CrawlResult[] = [
-  {
-    url: "https://example.com",
-    pageTitle: "Example Home",
-    num_external_links: 5,
-    num_internal_links: 10,
-    num_inaccessible_links: 1,
-    has_login_form: true,
-  },
-  {
-    url: "https://example.org/about",
-    pageTitle: "About Us",
-    num_external_links: 2,
-    num_internal_links: 4,
-    num_inaccessible_links: 0,
-    has_login_form: false,
-  },
-  {
-    url: "https://example.net/contact",
-    pageTitle: "Contact Page",
-    num_external_links: 3,
-    num_internal_links: 3,
-    num_inaccessible_links: 2,
-    has_login_form: true,
-  },
-];
+  const [results, setResults] = useState<CrawlResult[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const loadResults = async () => {
+    setLoading(true);
+    try {
+      // NOTE(Yara): This will fail for now because the API is not implemented yet
+      const data = await fetchCrawlResults();
+      setResults(data);
+    } catch (err) {
+      setError("Failed to load crawl results.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadResults();
+  }, []);
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
   // const [results, setResults] = useState<any[]>([]);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Web Crawler</h1>
+    <div className='min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4'>
+      <h1 className='text-3xl font-bold text-gray-800 mb-6'>Web Crawler</h1>
       <UrlInput />
-      <ResultsDisplay results={sampleResults} />
+      
+      {loading ? (
+        <div className='text-gray-500 mt-4'>Loading results...</div>
+      ) : (
+        <ResultsDisplay results={results} />
+      )}
     </div>
   );
 }
 
-export default Home; 
+export default Home;
